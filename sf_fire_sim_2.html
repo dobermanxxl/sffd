@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SFFD Western Addition Training Simulator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&family=Inter:wght@400;500&display=swap');
+:root{--red:#CC2222;--gold:#FFB800;--panel:#1a1a1a;--panel2:#242424;--border:#3a3a3a;--text:#e8e8e8;--muted:#777;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:#111;color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;user-select:none;}
+#hdr{background:linear-gradient(135deg,#5a0000,#bb1c1c,#5a0000);padding:7px 12px;display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--gold);flex-shrink:0;}
+#hdr h1{font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+#hdr p{font-size:9px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-transform:uppercase;}
+.btn{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;background:rgba(0,0,0,0.45);color:var(--text);border:1px solid rgba(255,255,255,0.22);border-radius:3px;padding:5px 9px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn:hover{background:rgba(255,255,255,0.13);border-color:var(--gold);}
+.btn.on{background:var(--gold);color:#111;border-color:var(--gold);}
+#ctop{margin-left:auto;display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
+#main{display:flex;flex:1;overflow:hidden;}
+#lp{width:210px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+.ps{padding:8px;border-bottom:1px solid var(--border);}
+.pt{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
+.ai{background:#0d0d0d;border:1px solid var(--border);border-radius:3px;color:var(--text);padding:5px 7px;font-size:12px;font-family:'Share Tech Mono',monospace;width:100%;}
+.ai:focus{outline:none;border-color:var(--gold);}
+.ac{background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:6px 8px;cursor:grab;display:flex;align-items:center;gap:6px;margin-bottom:3px;transition:border-color .15s;}
+.ac:hover{border-color:var(--gold);}
+.ai2{width:24px;height:15px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;}
+.ei{background:#CC2222;}.ti{background:#CC6600;}
+.an{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;}
+.as{font-size:9px;color:var(--muted);}
+select{background:#0d0d0d;border:1px solid var(--border);border-radius:3px;color:var(--text);padding:4px 6px;font-size:11px;width:100%;cursor:pointer;margin-bottom:4px;}
+select:focus{outline:none;border-color:var(--gold);}
+.fdrag{display:flex;align-items:center;gap:8px;border-radius:4px;padding:7px 10px;cursor:grab;margin-bottom:4px;}
+.fdrag:hover{filter:brightness(1.3);}
+#fire-ghost{position:fixed;pointer-events:none;display:none;z-index:9999;font-size:32px;transform:translate(-50%,-50%);filter:drop-shadow(0 0 10px #ff4400);}
+#sw{flex:1;position:relative;overflow:hidden;background:#0a1520;}
+#topbar{position:absolute;top:0;left:0;right:0;height:30px;background:#0d0d0d;border-bottom:1px solid var(--border);display:flex;align-items:center;z-index:20;padding:0 8px;gap:6px;}
+#zoom-ctrl{display:flex;align-items:center;gap:4px;margin-left:auto;}
+.zb{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;background:rgba(255,255,255,0.08);border:1px solid var(--border);border-radius:3px;color:var(--text);width:22px;height:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.zb:hover{border-color:var(--gold);color:var(--gold);}
+#zl{font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;min-width:36px;text-align:center;}
+#cv{position:absolute;top:30px;left:0;}
+#mb{position:absolute;top:38px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.92);border:1px solid var(--gold);border-radius:3px;padding:4px 14px;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);display:none;white-space:nowrap;z-index:30;pointer-events:none;}
+#rp{width:182px;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+#sb{background:#080808;border-top:1px solid var(--border);padding:3px 10px;display:flex;gap:12px;align-items:center;flex-shrink:0;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);}
+.sd{width:6px;height:6px;border-radius:50%;background:#22aa44;display:inline-block;margin-right:3px;}
+.sd.on{background:var(--red);animation:pu 1s infinite;}
+@keyframes pu{0%,100%{opacity:1;}50%{opacity:.3;}}
+.mi{margin-left:auto;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);text-transform:uppercase;}
+.li{font-size:10px;color:var(--muted);padding:2px 0;border-bottom:1px solid #1c1c1c;display:flex;align-items:flex-start;gap:3px;}
+.ld{width:4px;height:4px;border-radius:50%;background:var(--red);margin-top:4px;flex-shrink:0;}
+.ir{font-size:10px;color:var(--muted);padding:2px 0;display:flex;justify-content:space-between;}
+.iv{color:var(--text);font-size:10px;}
+</style>
+</head>
+<body>
+<div id="fire-ghost">🔥</div>
+<div id="hdr">
+  <div style="width:38px;height:38px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🔥</div>
+  <div><h1>SFFD Training Simulator</h1><p>Western Addition · Fillmore District · IC Training</p></div>
+  <div id="ctop">
+    <button class="btn" onclick="loadRandom()">🎲 Random</button>
+    <button class="btn" id="ba" onclick="toggleMode('aerial')">⬆ Aerial</button>
+    <button class="btn" id="bhy" onclick="toggleHydrants()">💧 Hydrants</button>
+    <button class="btn" onclick="clearAll()" style="border-color:rgba(200,50,50,0.5)">⬛ Clear</button>
+  </div>
+</div>
+<div id="main">
+  <div id="lp">
+    <div class="ps">
+      <div class="pt">📍 Location</div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <input class="ai" type="text" id="addr" placeholder="e.g. 1234 Fillmore St"/>
+        <button class="btn" onclick="loadTyped()">Load Address</button>
+        <button class="btn" style="font-size:10px" onclick="loadRandom()">🎲 Random WA Address</button>
+      </div>
+      <div id="ca" style="margin-top:5px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted)">No address loaded</div>
+    </div>
+    <div class="ps">
+      <div class="pt">🚒 Fire Engines</div>
+      <div class="ac" draggable="true" data-type="engine" data-label="1st Engine" ondragstart="unitDS(event)"><div class="ai2 ei">🚒</div><div><div class="an">1st Engine</div><div class="as">Attack Pumper</div></div></div>
+      <div class="ac" draggable="true" data-type="engine" data-label="2nd Engine" ondragstart="unitDS(event)"><div class="ai2 ei">🚒</div><div><div class="an">2nd Engine</div><div class="as">Supply Pumper</div></div></div>
+      <div class="ac" draggable="true" data-type="engine" data-label="3rd Engine" ondragstart="unitDS(event)"><div class="ai2 ei">🚒</div><div><div class="an">3rd Engine</div><div class="as">Supply Pumper</div></div></div>
+      <div class="ac" draggable="true" data-type="engine" data-label="4th Engine" ondragstart="unitDS(event)"><div class="ai2 ei">🚒</div><div><div class="an">4th Engine</div><div class="as">Pumper</div></div></div>
+    </div>
+    <div class="ps">
+      <div class="pt">🔺 Ladder Trucks</div>
+      <div class="ac" draggable="true" data-type="truck" data-label="1st Truck" ondragstart="unitDS(event)"><div class="ai2 ti">🔺</div><div><div class="an">1st Truck</div><div class="as">100ft Aerial</div></div></div>
+      <div class="ac" draggable="true" data-type="truck" data-label="2nd Truck" ondragstart="unitDS(event)"><div class="ai2 ti">🔺</div><div><div class="an">2nd Truck</div><div class="as">100ft Aerial</div></div></div>
+    </div>
+    <div class="ps">
+      <div class="pt">🔥 Fire / Smoke</div>
+      <div style="font-size:9px;color:var(--gold);margin-bottom:5px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px">DRAG DIRECTLY ONTO BUILDING</div>
+      <div class="fdrag" draggable="true" ondragstart="fireDS(event,'flames')" style="background:rgba(180,40,0,0.3);border:1px solid rgba(255,100,0,0.6)">
+        <span style="font-size:22px">🔥</span><div><div style="font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700">Working Fire</div><div style="font-size:9px;color:var(--muted)">Drop on any window, door, roof</div></div>
+      </div>
+      <div class="fdrag" draggable="true" ondragstart="fireDS(event,'smoke')" style="background:rgba(60,60,60,0.4);border:1px solid rgba(140,140,140,0.5)">
+        <span style="font-size:22px">💨</span><div><div style="font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700">Smoke Showing</div><div style="font-size:9px;color:var(--muted)">Drop on any window, door, roof</div></div>
+      </div>
+      <div class="fdrag" draggable="true" ondragstart="fireDS(event,'both')" style="background:rgba(150,50,0,0.35);border:1px solid rgba(200,80,0,0.55)">
+        <span style="font-size:22px">🔥💨</span><div><div style="font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700">Flames + Smoke</div><div style="font-size:9px;color:var(--muted)">Drop on any window, door, roof</div></div>
+      </div>
+      <div style="margin-top:4px;font-size:9px;color:var(--muted)">Fire appears exactly where you drop it. Click ✕ marker to remove.</div>
+    </div>
+    <div class="ps">
+      <div class="pt">⚙ Tools</div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <button class="btn" style="font-size:10px;text-align:left" onclick="clearHoses()">✕ Clear Hoses</button>
+        <button class="btn" style="font-size:10px;text-align:left" onclick="clearAerials()">✕ Clear Aerials</button>
+        <button class="btn" style="font-size:10px;text-align:left" onclick="clearFires()">✕ Clear Fire/Smoke</button>
+        <button class="btn" style="font-size:10px;text-align:left" onclick="delSelected()">✕ Remove Selected</button>
+      </div>
+    </div>
+    <div class="ps" style="flex:1">
+      <div class="pt">📡 Log</div>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <div id="sw">
+    <div id="topbar">
+      <span style="font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--gold);text-transform:uppercase">🏠 Street View</span>
+      <span id="addr-disp" style="font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace"></span>
+      <div id="zoom-ctrl">
+        <button class="zb" onclick="zoom(-0.15)">−</button>
+        <div id="zl">100%</div>
+        <button class="zb" onclick="zoom(0.15)">+</button>
+        <button class="zb" onclick="resetZoom()" style="width:auto;padding:0 5px;font-size:9px">RST</button>
+      </div>
+    </div>
+    <canvas id="cv"></canvas>
+    <div id="mb"></div>
+  </div>
+
+  <div id="rp">
+    <div class="ps">
+      <div class="pt">📋 Incident</div>
+      <div class="ir">Status: <span class="iv" id="ist" style="color:#22aa44">Standby</span></div>
+      <div class="ir">Box: <span class="iv" id="ibox">—</span></div>
+      <div class="ir" style="flex-direction:column;align-items:flex-start">Address:<div class="iv" id="iadr" style="text-align:left;font-size:9px">—</div></div>
+    </div>
+    <div class="ps"><div class="pt">🚒 Deployed</div><div id="dep" style="font-size:10px;color:var(--muted)">None</div></div>
+    <div class="ps"><div class="pt">💧 Hydrants</div><div id="hlist" style="font-size:10px;color:var(--muted)">Load address first</div></div>
+    <div class="ps"><div class="pt">🔗 Connections</div><div id="conn" style="font-size:10px;color:var(--muted)">None</div></div>
+    <div class="ps">
+      <div class="pt">💡 How To Use</div>
+      <div style="font-size:9px;color:var(--muted);line-height:2">
+        • Load address or click Random<br>
+        • Drag apparatus to street<br>
+        • Click unit → use action buttons<br>
+        • ⟺ FLIP = face left or right<br>
+        • HOSE 150 / HOSE 200 → click target<br>
+        • 2nd/3rd: SUPPLY 1ST = supply lines<br>
+        • AERIAL → click building<br>
+        • Drag 🔥/💨 directly onto building<br>
+        • Click ✕ marker on fire to remove<br>
+        • Click hose/aerial line to remove<br>
+        • Scroll = zoom · Drag = pan<br>
+        • ESC = cancel
+      </div>
+    </div>
+  </div>
+</div>
+<div id="sb">
+  <span><span class="sd" id="sdot"></span><span id="stxt">Standby</span></span>
+  <span>🚒 <span id="se">0</span></span>
+  <span>🔺 <span id="st">0</span></span>
+  <span>💧 <span id="sh">0</span></span>
+  <span>🔥 <span id="sf">0</span></span>
+  <div class="mi" id="mind">Mode: Command</div>
+</div>
+
+<script>
+const WA=["1301 Divisadero St","1800 McAllister St","945 Fillmore St","1350 Fillmore St","620 Divisadero St","2415 California St","1 Steiner St","1800 Geary Blvd","400 Masonic Ave","1600 Turk St","755 Eddy St","300 Golden Gate Ave","2201 Post St","1600 Sutter St","470 Broderick St","1000 Steiner St","2655 Bush St","1555 Pine St","1234 Fulton St","1501 Hayes St"];
+const HOSE_SCALE=3;
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let addr=null;
+let mode='cmd';
+let hoseFrom=null,aerialFrom=null;
+let mx=0,my=0;
+let pUnitDrag={type:null,label:null};
+let pFireDrag=null;
+let dragging=null; // {uid,owx,owy}
+let sel=null;
+let showHyd=true;
+let idC=0;
+let units=[],hoses=[],aerials=[],fires=[],hydrants=[];
+let scene=null;
+let panActive=false,panSX=0,panSY=0,panCX=0,panCY=0;
+
+// ── CAMERA ────────────────────────────────────────────────────────────────────
+let cam={x:0,y:0,z:1};
+const MIN_Z=0.2,MAX_Z=6;
+function w2s(wx,wy){return{x:(wx-cam.x)*cam.z+cv.clientWidth/2,y:(wy-cam.y)*cam.z+cv.clientHeight/2};}
+function s2w(sx,sy){return{x:(sx-cv.clientWidth/2)/cam.z+cam.x,y:(sy-cv.clientHeight/2)/cam.z+cam.y};}
+function zoom(dz){cam.z=Math.max(MIN_Z,Math.min(MAX_Z,cam.z+dz));updZL();}
+function resetZoom(){cam.x=0;cam.y=0;cam.z=1;updZL();}
+function updZL(){document.getElementById('zl').textContent=Math.round(cam.z*100)+'%';}
+
+// ── RNG ───────────────────────────────────────────────────────────────────────
+function hash(s){let h=5381;for(let i=0;i<s.length;i++)h=((h*31)+s.charCodeAt(i))>>>0;return h;}
+function mkRng(seed){let h=hash(seed);return()=>{h=(h*1664525+1013904223)>>>0;return h/0xFFFFFFFF;};}
+
+// ── LOG ───────────────────────────────────────────────────────────────────────
+const logs=[];
+function log(m){logs.unshift(m);if(logs.length>14)logs.pop();document.getElementById('log').innerHTML=logs.map(l=>`<div class="li"><div class="ld"></div>${l}</div>`).join('');}
+
+// ── RESIZE ────────────────────────────────────────────────────────────────────
+function resize(){const w=document.getElementById('sw');cv.width=w.clientWidth;cv.height=w.clientHeight-30;}
+window.addEventListener('resize',()=>{resize();if(scene)initCam();});
+
+// ── SCENE GENERATION ─────────────────────────────────────────────────────────
+// World coordinate system:
+//   x: left-right along the main street
+//   y: 0=top of tallest building, increases downward
+//   groundY: the sidewalk/curb line
+//   streetMidY: centre of the main street lane
+// Cross street: a gap in the building row representing a perpendicular street
+// Corner building: detected from address number ending in 98,99,01 — wider, or missing corner
+
+const MAIN_STREET_W = 160;  // width of main street (in world px)
+const CROSS_STREET_W = 100; // width of cross-street gap
+const SIDEWALK_H = 22;      // sidewalk band height
+const GROUND_Y = 420;       // fixed curb/sidewalk y
+const STREET_MID_Y = GROUND_Y + MAIN_STREET_W/2; // centre of main street lane
+
+function isCornerAddr(a){
+  const m=a.match(/(\d+)/);if(!m)return false;
+  const n=parseInt(m[1])%100;
+  return n===98||n===99||n===1||n===0;
+}
+
+function genScene(){
+  if(!addr)return;
+  const rng=mkRng(addr);
+  const isCorner=isCornerAddr(addr);
+
+  // Total scene width — main block + cross street on one side
+  const svW=2000;
+  // Where in the scene the cross street falls
+  // If corner address, cross street is near the left edge; otherwise random middle position
+  const crossX=isCorner
+    ? -svW/2 + 200 + rng()*80
+    : -svW/2 + 400 + rng()*600;
+
+  const TYPES=['victorian','victorian','victorian','apartment','commercial','mixed'];
+
+  // Build a list of building "slots" across the scene, with a gap for cross street
+  // Buildings on the left of cross street
+  const leftW = crossX - (-svW/2);
+  const rightW = svW/2 - (crossX + CROSS_STREET_W);
+
+  function makeBuildings(startX, totalW, side){
+    const bldgs=[];
+    let x=startX;
+    const n=Math.max(2, Math.round(totalW/110) + Math.floor(rng()*2));
+    const bw=totalW/n;
+    for(let i=0;i<n;i++){
+      const t=TYPES[Math.floor(rng()*TYPES.length)];
+      const fl=t==='commercial'?1+Math.floor(rng()*2):2+Math.floor(rng()*4);
+      // Corner buildings (at cross-street edges) are narrower, or cut back
+      const isEdge=(i===0&&side==='right')||(i===n-1&&side==='left');
+      const w=isEdge ? bw*(0.55+rng()*0.3) : bw-2;
+      const h=90+fl*38+rng()*28;
+      const wy=GROUND_Y-h; // bottom-aligned to groundY
+      bldgs.push({
+        wx:x+(isEdge&&side==='right'?bw-w:0), wy, w, h, fl, type:t,
+        bc:`hsl(${20+rng()*40|0},${14+rng()*18|0}%,${22+rng()*18|0}%)`,
+        tr:`hsl(${22+rng()*38|0},${22+rng()*24|0}%,${44+rng()*22|0}%)`,
+        rc:`hsl(${200+rng()*60|0},${8+rng()*16|0}%,${14+rng()*16|0}%)`
+      });
+      x+=bw;
+    }
+    return bldgs;
+  }
+
+  const leftBldgs=makeBuildings(-svW/2, leftW, 'left');
+  const rightBldgs=makeBuildings(crossX+CROSS_STREET_W, rightW, 'right');
+  const allBldgs=[...leftBldgs,...rightBldgs];
+
+  // Hydrants: one at each corner of the cross street, on the main street sidewalk
+  const hyds=[
+    {id:0,wx:crossX-14,wy:GROUND_Y},            // left corner of cross street (near side)
+    {id:1,wx:crossX+CROSS_STREET_W+14,wy:GROUND_Y}, // right corner (near side)
+    {id:2,wx:crossX-14,wy:GROUND_Y-SIDEWALK_H-10},  // left corner (far side, across cross street)
+    {id:3,wx:crossX+CROSS_STREET_W+14,wy:GROUND_Y-SIDEWALK_H-10},
+  ];
+
+  scene={svW,crossX,allBldgs,leftBldgs,rightBldgs};
+  hydrants=hyds;
+  updHydList();
+
+  // Place units on street if none placed yet
+  if(units.length===0){/* wait for drag */}
+  else{
+    // Re-spread existing units along the street
+    const n=units.length;
+    units.forEach((u,i)=>{
+      if(u.wx===undefined){
+        u.wx=-svW/4+i*(svW/(2*(n+1)));
+        u.wy=STREET_MID_Y;
+      }
+    });
+  }
+  initCam();
+}
+
+function initCam(){
+  if(!scene)return;
+  // Centre camera so GROUND_Y is at 72% of canvas height
+  cam.x=0;
+  cam.z=1;
+  const targetSY=cv.height*0.72;
+  cam.y=GROUND_Y-(targetSY-cv.height/2)/cam.z;
+  updZL();
+}
+
+// ── DRAW ALL ─────────────────────────────────────────────────────────────────
+function drawAll(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  if(!scene){drawWelcome();return;}
+  ctx.save();
+  ctx.translate(cv.width/2,cv.height/2);
+  ctx.scale(cam.z,cam.z);
+  ctx.translate(-cam.x,-cam.y);
+  drawStreet();
+  if(showHyd)drawHydrants();
+  drawHoses();
+  drawAerials();
+  drawFires();
+  drawUnits();
+  ctx.restore();
+  if(mode==='hose'&&hoseFrom)drawHosePreview();
+  if(mode==='aerial'&&aerialFrom)drawAerialPreview();
+}
+
+function drawWelcome(){
+  ctx.fillStyle='#0a1520';ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.textAlign='center';
+  ctx.font='bold 46px Rajdhani,sans-serif';ctx.fillStyle='#CC2222';ctx.fillText('SFFD',cv.width/2,cv.height/2-42);
+  ctx.font='bold 14px Rajdhani,sans-serif';ctx.fillStyle='#FFB800';ctx.fillText('WESTERN ADDITION TRAINING SIMULATOR',cv.width/2,cv.height/2-2);
+  ctx.font='13px Inter,sans-serif';ctx.fillStyle='#444';ctx.fillText('Click Random or enter an address to begin',cv.width/2,cv.height/2+30);
+  ctx.textAlign='left';
+}
+
+function drawStreet(){
+  const{svW,crossX,allBldgs}=scene;
+  const z=cam.z;
+  const skyH=700,streetH=400;
+
+  // Sky
+  const sky=ctx.createLinearGradient(0,-skyH,0,0);
+  sky.addColorStop(0,'#06101c');sky.addColorStop(1,'#162438');
+  ctx.fillStyle=sky;ctx.fillRect(-svW/2,-skyH,svW,skyH);
+
+  // Main street surface
+  ctx.fillStyle='#3a3a36';ctx.fillRect(-svW/2,GROUND_Y,svW,streetH);
+  ctx.fillStyle='#424240';ctx.fillRect(-svW/2,GROUND_Y+8,svW,streetH-8);
+
+  // Sidewalk
+  ctx.fillStyle='#646460';ctx.fillRect(-svW/2,GROUND_Y,svW,SIDEWALK_H);
+  ctx.strokeStyle='#505050';ctx.lineWidth=1/z;
+  ctx.beginPath();ctx.moveTo(-svW/2,GROUND_Y+SIDEWALK_H);ctx.lineTo(svW/2,GROUND_Y+SIDEWALK_H);ctx.stroke();
+
+  // Curb edge (top of sidewalk = bottom of buildings)
+  ctx.strokeStyle='#808078';ctx.lineWidth=2/z;
+  ctx.beginPath();ctx.moveTo(-svW/2,GROUND_Y);ctx.lineTo(svW/2,GROUND_Y);ctx.stroke();
+
+  // Road centre dashes
+  ctx.strokeStyle='rgba(255,190,0,0.42)';ctx.lineWidth=2.5/z;ctx.setLineDash([32,20]);
+  ctx.beginPath();ctx.moveTo(-svW/2,GROUND_Y+MAIN_STREET_W*0.5);ctx.lineTo(svW/2,GROUND_Y+MAIN_STREET_W*0.5);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ── Cross street gap ─────────────────────────────────────────────────────────
+  // Fill the gap between buildings with cross-street pavement
+  const cx1=crossX,cx2=crossX+CROSS_STREET_W;
+  // Cross-street pavement extending upward behind buildings
+  ctx.fillStyle='#353533';ctx.fillRect(cx1,GROUND_Y-600,CROSS_STREET_W,600+streetH);
+  // Sidewalk on cross street (left and right side of gap)
+  ctx.fillStyle='#585854';ctx.fillRect(cx1,GROUND_Y-600,SIDEWALK_H,600);
+  ctx.fillRect(cx2-SIDEWALK_H,GROUND_Y-600,SIDEWALK_H,600);
+  // Cross-street centre line (running vertically)
+  ctx.strokeStyle='rgba(255,190,0,0.3)';ctx.lineWidth=2/z;ctx.setLineDash([20,14]);
+  ctx.beginPath();ctx.moveTo(cx1+CROSS_STREET_W/2,GROUND_Y-600);ctx.lineTo(cx1+CROSS_STREET_W/2,GROUND_Y+streetH);ctx.stroke();
+  ctx.setLineDash([]);
+  // Cross-street stop line at intersection
+  ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=3/z;
+  ctx.beginPath();ctx.moveTo(cx1,GROUND_Y);ctx.lineTo(cx1,GROUND_Y+MAIN_STREET_W);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx2,GROUND_Y);ctx.lineTo(cx2,GROUND_Y+MAIN_STREET_W);ctx.stroke();
+  // Cross-street name label
+  ctx.save();ctx.translate(cx1+CROSS_STREET_W/2,GROUND_Y-60);ctx.rotate(-Math.PI/2);
+  ctx.fillStyle='rgba(255,200,0,0.45)';ctx.font=`bold ${11/z}px Rajdhani,sans-serif`;ctx.textAlign='center';
+  ctx.fillText('CROSS ST',0,0);ctx.restore();
+
+  // ── Buildings ────────────────────────────────────────────────────────────────
+  allBldgs.forEach(b=>drawBuilding(b));
+
+  // Street name on sidewalk
+  if(addr){
+    ctx.fillStyle='rgba(255,205,0,0.75)';ctx.font=`bold ${13/z}px Rajdhani,sans-serif`;
+    ctx.textAlign='center';ctx.fillText(addr.toUpperCase()+', SAN FRANCISCO',0,GROUND_Y+15/z);ctx.textAlign='left';
+  }
+}
+
+function drawBuilding(b){
+  const z=cam.z;
+  ctx.fillStyle=b.bc;ctx.fillRect(b.wx,b.wy,b.w,b.h);
+
+  // Windows — track their positions for fire hit testing
+  if(!b.wins)b.wins=[];
+  b.wins=[];
+  const wr=b.fl,wc=Math.max(2,Math.floor(b.w/26));
+  const wW=13,wH=15,colW=(b.w-14)/wc;
+  for(let r=0;r<wr;r++){
+    for(let c=0;c<wc;c++){
+      const wx=b.wx+7+colW*c+(colW-wW)/2;
+      const wy=b.wy+10+(b.h-20)/wr*r+8;
+      const lit=((b.wx|0)+(r*7)+(c*11))%5>1;
+      ctx.fillStyle=lit?'rgba(255,218,110,0.9)':'rgba(10,20,40,0.92)';
+      ctx.fillRect(wx,wy,wW,wH);
+      if(lit){ctx.fillStyle='rgba(255,195,60,0.1)';ctx.fillRect(wx-2,wy-2,wW+4,wH+4);}
+      ctx.strokeStyle='rgba(255,255,255,0.07)';ctx.lineWidth=0.5/z;ctx.strokeRect(wx,wy,wW,wH);
+      b.wins.push({x:wx,y:wy,w:wW,h:wH,floor:r+1,col:c});
+    }
+  }
+
+  // Trim
+  ctx.fillStyle=b.tr;ctx.fillRect(b.wx,b.wy,b.w,8);ctx.fillRect(b.wx,b.wy+b.h-6,b.w,6);
+  // Roof
+  ctx.fillStyle=b.rc;ctx.fillRect(b.wx,b.wy-12,b.w,14);
+  if(b.type==='victorian'){
+    ctx.fillStyle=b.rc;ctx.beginPath();ctx.moveTo(b.wx,b.wy);ctx.lineTo(b.wx+b.w/2,b.wy-28);ctx.lineTo(b.wx+b.w,b.wy);ctx.closePath();ctx.fill();
+  }
+  // Door
+  const dw=16,dh=28;
+  ctx.fillStyle='#120902';ctx.fillRect(b.wx+b.w/2-dw/2,b.wy+b.h-dh,dw,dh);
+  ctx.fillStyle='rgba(255,175,55,0.38)';ctx.fillRect(b.wx+b.w/2,b.wy+b.h-dh+7,3,3);
+  // Outline
+  ctx.strokeStyle='rgba(0,0,0,0.5)';ctx.lineWidth=1/z;ctx.strokeRect(b.wx,b.wy,b.w,b.h);
+  // Address number
+  ctx.fillStyle='rgba(255,255,255,0.25)';ctx.font=`${9/z}px Inter,sans-serif`;ctx.textAlign='center';
+  ctx.fillText(800+Math.abs(b.wx/10|0),b.wx+b.w/2,b.wy+b.h-2);ctx.textAlign='left';
+}
+
+// ── HYDRANTS ─────────────────────────────────────────────────────────────────
+function drawHydrantAt(wx,wy){
+  // wy = base of hydrant (ground level). Draws upward.
+  ctx.fillStyle='#881500';ctx.fillRect(wx-5,wy-11,10,11);
+  ctx.fillStyle='#BB2000';ctx.fillRect(wx-7,wy-18,14,7);
+  ctx.fillStyle='#CC3010';ctx.fillRect(wx-4,wy-28,8,10);
+  ctx.fillStyle='#DD4422';ctx.beginPath();ctx.arc(wx,wy-28,4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#AA2000';ctx.fillRect(wx-11,wy-17,5,4);ctx.fillRect(wx+6,wy-17,5,4);
+  ctx.fillStyle='rgba(255,255,255,0.14)';ctx.fillRect(wx-2,wy-26,2,20);
+}
+function drawHydrants(){hydrants.forEach(h=>drawHydrantAt(h.wx,h.wy));}
+
+// ── HOSE LINES ────────────────────────────────────────────────────────────────
+function drawHoses(){
+  const z=cam.z;
+  hoses.forEach(h=>{
+    ctx.save();
+    ctx.shadowColor='rgba(200,175,40,0.3)';ctx.shadowBlur=5/z;
+    ctx.strokeStyle=h.supply?'#50a0e0':(h.hlen===200?'#90c870':'#d2be48');
+    ctx.lineWidth=(h.supply?3.5:4)/z;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(h.ax,h.ay);ctx.lineTo(h.bx,h.by);ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle=h.supply?'#3080b0':'#9e8830';ctx.beginPath();ctx.arc(h.ax,h.ay,4.5/z,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=h.supply?'#80d0ff':'#eee050';ctx.beginPath();ctx.arc(h.bx,h.by,4.5/z,0,Math.PI*2);ctx.fill();
+    const lmx=(h.ax+h.bx)/2,lmy=(h.ay+h.by)/2;
+    const tag=h.supply?'SUPPLY':`${h.hlen}' LINE`;
+    const tw=(tag.length*5.5+8)/z;
+    rrect(lmx-tw/2,lmy-8/z,tw,13/z,3/z);
+    ctx.fillStyle='rgba(0,0,0,0.78)';ctx.fill();
+    ctx.fillStyle=h.supply?'#80c8f0':'#d2be48';
+    ctx.font=`bold ${8/z}px Rajdhani,sans-serif`;ctx.textAlign='center';ctx.fillText(tag,lmx,lmy+3/z);ctx.textAlign='left';
+  });
+}
+
+// ── HOSE PREVIEW ─────────────────────────────────────────────────────────────
+function drawHosePreview(){
+  if(!hoseFrom)return;
+  const sp=w2s(hoseFrom.wx,hoseFrom.wy);
+  const maxSPx=hoseFrom.hlen*HOSE_SCALE*cam.z;
+  const dx=mx-sp.x,dy=my-sp.y,dist=Math.hypot(dx,dy);
+  const ratio=dist>0?Math.min(maxSPx,dist)/dist:0;
+  const ex=sp.x+dx*ratio,ey=sp.y+dy*ratio,ok=dist<=maxSPx;
+  ctx.save();ctx.resetTransform();
+  ctx.setLineDash([8,5]);ctx.strokeStyle=ok?'rgba(210,185,50,0.85)':'rgba(200,70,70,0.75)';ctx.lineWidth=3;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(sp.x,sp.y);ctx.lineTo(ex,ey);ctx.stroke();
+  ctx.setLineDash([4,4]);ctx.strokeStyle=ok?'rgba(190,165,40,0.2)':'rgba(200,70,70,0.16)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(sp.x,sp.y,maxSPx,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=ok?'rgba(240,215,50,0.9)':'rgba(220,70,70,0.9)';ctx.beginPath();ctx.arc(ex,ey,5,0,Math.PI*2);ctx.fill();
+  const ft=Math.round(dist/HOSE_SCALE/cam.z),tag=`${ft}' / ${hoseFrom.hlen}'`;
+  ctx.fillStyle='rgba(0,0,0,0.82)';ctx.beginPath();ctx.roundRect(mx+12,my-13,tag.length*6+8,16,3);ctx.fill();
+  ctx.fillStyle=ok?'#d2be48':'#ee6060';ctx.font='bold 9px Rajdhani,sans-serif';ctx.fillText(tag,mx+16,my+1);
+  ctx.restore();
+}
+
+// ── AERIALS ───────────────────────────────────────────────────────────────────
+function drawAerials(){
+  const z=cam.z;
+  aerials.forEach(a=>{
+    const dx=a.bx-a.ax,dy=a.by-a.ay,len=Math.hypot(dx,dy);if(len<2)return;
+    ctx.save();ctx.translate(a.ax,a.ay);ctx.rotate(Math.atan2(dy,dx));
+    ctx.strokeStyle='#aaa';ctx.lineWidth=4/z;ctx.lineCap='butt';
+    ctx.beginPath();ctx.moveTo(0,-2.5/z);ctx.lineTo(len,-2.5/z);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,2.5/z);ctx.lineTo(len,2.5/z);ctx.stroke();
+    ctx.strokeStyle='#777';ctx.lineWidth=1.8/z;
+    for(let r=10/z;r<len;r+=12/z){ctx.beginPath();ctx.moveTo(r,-2.5/z);ctx.lineTo(r,2.5/z);ctx.stroke();}
+    ctx.fillStyle='#FF6000';ctx.beginPath();ctx.arc(len,0,6/z,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font=`bold ${8/z}px sans-serif`;ctx.textAlign='center';ctx.fillText('▲',len,2/z);ctx.textAlign='left';
+    ctx.restore();
+  });
+}
+function drawAerialPreview(){
+  if(!aerialFrom)return;
+  const sp=w2s(aerialFrom.wx,aerialFrom.wy);
+  ctx.save();ctx.resetTransform();
+  ctx.setLineDash([6,4]);ctx.strokeStyle='rgba(180,180,180,0.8)';ctx.lineWidth=3;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(sp.x,sp.y);ctx.lineTo(mx,my);ctx.stroke();ctx.setLineDash([]);
+  ctx.restore();
+}
+
+// ── FIRES ─────────────────────────────────────────────────────────────────────
+function drawFires(){
+  const t=Date.now()/1000,z=cam.z;
+  fires.forEach(f=>{
+    if(f.ft==='smoke'||f.ft==='both')drawSmoke(f.wx,f.wy,t,f.id,z);
+    if(f.ft==='flames'||f.ft==='both')drawFlames(f.wx,f.wy,t,f.id,z);
+    // Remove ✕ marker above fire
+    ctx.fillStyle='rgba(220,60,60,0.85)';ctx.font=`bold ${11/z}px sans-serif`;ctx.textAlign='center';
+    ctx.fillText('✕',f.wx,f.wy-36/z);ctx.textAlign='left';
+  });
+}
+function drawFlames(wx,wy,t,id,z){
+  const flk=Math.sin(t*7+id*1.3)*0.12,sz=55/z;
+  for(let i=0;i<3;i++){
+    const ox=(i-1)*10/z+Math.sin(t*2.5+i+id)*5/z,h=sz+flk*12/z+i*5/z;
+    const g=ctx.createRadialGradient(wx+ox,wy,2/z,wx+ox,wy-h,h);
+    if(i===1){g.addColorStop(0,'rgba(255,255,80,0.98)');g.addColorStop(0.3,'rgba(255,120,0,0.88)');g.addColorStop(1,'rgba(200,0,0,0)');}
+    else{g.addColorStop(0,'rgba(255,180,30,0.8)');g.addColorStop(0.4,'rgba(230,50,0,0.55)');g.addColorStop(1,'rgba(120,0,0,0)');}
+    ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(wx+ox,wy-h/2,(11+i*3)/z,h/2*(1+flk*0.5),0,0,Math.PI*2);ctx.fill();
+  }
+  const glow=ctx.createRadialGradient(wx,wy,0,wx,wy,50/z);
+  glow.addColorStop(0,'rgba(255,80,0,0.25)');glow.addColorStop(1,'rgba(200,0,0,0)');
+  ctx.fillStyle=glow;ctx.beginPath();ctx.arc(wx,wy,50/z,0,Math.PI*2);ctx.fill();
+}
+function drawSmoke(wx,wy,t,id,z){
+  for(let i=0;i<6;i++){
+    const age=i/5,sy=wy-i*34/z-Math.sin(t*0.4+id)*8/z,sx=wx+Math.sin(t*0.7+i*0.8+id)*18/z*age;
+    const r=(20+i*18)/z;
+    const g=ctx.createRadialGradient(sx,sy,0,sx,sy,r);
+    g.addColorStop(0,`rgba(72,72,72,${0.62-age*0.38})`);g.addColorStop(1,'rgba(25,25,25,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(sx,sy,r,0,Math.PI*2);ctx.fill();
+  }
+}
+
+// ── UNITS ─────────────────────────────────────────────────────────────────────
+// Unit world coords: wx,wy = centre. Street: wy = STREET_MID_Y (on road)
+// Wheels rest at wy + ~12px (bottom of chassis)
+
+function rearX(u){return u.flip?-26:26;} // rear offset from centre
+function rearWPos(u){return{wx:u.wx+rearX(u),wy:u.wy};}
+function driverSideY(u){return u.wy-14;}
+function passSideY(u){return u.wy+14;}
+
+function drawUnits(){
+  const z=cam.z;
+  units.forEach(u=>{
+    if(u.wx===undefined)return;
+    const{wx,wy}=u;
+    const isE=u.type==='engine';
+    const col=isE?'#CC2222':'#CC6600',col2=isE?'#EE3333':'#EE7700';
+    const flip=u.flip?-1:1;
+
+    ctx.save();ctx.translate(wx,wy);ctx.scale(flip,1);
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,0.32)';ctx.beginPath();ctx.ellipse(0,13/z,27/z,6/z,0,0,Math.PI*2);ctx.fill();
+    // Chassis
+    ctx.fillStyle=col;ctx.fillRect(-26/z,-7/z,52/z,18/z);
+    // Cab
+    ctx.fillStyle=col2;ctx.fillRect(-26/z,-17/z,21/z,12/z);
+    // Windshield
+    ctx.fillStyle='rgba(130,200,245,0.72)';ctx.fillRect(-22/z,-16/z,14/z,10/z);
+    // Compartment lines
+    ctx.strokeStyle='rgba(0,0,0,0.25)';ctx.lineWidth=1/z;
+    ctx.beginPath();ctx.moveTo(4/z,-7/z);ctx.lineTo(4/z,11/z);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(14/z,-7/z);ctx.lineTo(14/z,11/z);ctx.stroke();
+    // Wheels
+    [-18/z,14/z].forEach(wx2=>{ctx.fillStyle='#111';ctx.beginPath();ctx.arc(wx2,12/z,6/z,0,Math.PI*2);ctx.fill();ctx.fillStyle='#333';ctx.beginPath();ctx.arc(wx2,12/z,2.5/z,0,Math.PI*2);ctx.fill();});
+    // Light bar
+    ctx.fillStyle='#FFD700';ctx.fillRect(-26/z,-21/z,52/z,5/z);
+    const blink=Math.floor(Date.now()/270)%2;
+    ctx.fillStyle=blink?'rgba(255,15,15,0.95)':'rgba(15,75,255,0.95)';ctx.fillRect(-21/z,-20/z,9/z,3/z);
+    ctx.fillStyle=blink?'rgba(15,75,255,0.95)':'rgba(255,15,15,0.95)';ctx.fillRect(13/z,-20/z,9/z,3/z);
+    // Truck aerial
+    if(!isE){ctx.fillStyle='#666';ctx.fillRect(-5/z,-32/z,10/z,15/z);ctx.strokeStyle='#999';ctx.lineWidth=2.5/z;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(0,-32/z);ctx.lineTo(20/z,-55/z);ctx.stroke();}
+    // Hose bed at rear
+    if(isE){ctx.fillStyle='rgba(180,158,38,0.48)';ctx.fillRect(5/z,-4/z,17/z,10/z);ctx.strokeStyle='#b8a035';ctx.lineWidth=1.5/z;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(6/z,-2/z);ctx.quadraticCurveTo(18/z,2/z,18/z,8/z);ctx.stroke();}
+    // Direction arrow at front
+    ctx.fillStyle='rgba(255,255,255,0.45)';ctx.beginPath();ctx.moveTo(-26/z,1/z);ctx.lineTo(-33/z,-4/z);ctx.lineTo(-33/z,6/z);ctx.closePath();ctx.fill();
+    ctx.restore();
+
+    // Label above unit (always upright)
+    rrect(wx-28/z,wy-40/z,56/z,14/z,3/z);ctx.fillStyle='rgba(0,0,0,0.84)';ctx.fill();
+    ctx.fillStyle='#fff';ctx.font=`bold ${8/z}px Rajdhani,sans-serif`;ctx.textAlign='center';ctx.fillText(u.label.toUpperCase(),wx,wy-29/z);ctx.textAlign='left';
+
+    // Selection ring + buttons
+    if(sel===u.id){
+      ctx.strokeStyle='#FFB800';ctx.lineWidth=2/z;ctx.setLineDash([4/z,3/z]);
+      ctx.strokeRect(wx-32/z,wy-23/z,64/z,52/z);ctx.setLineDash([]);
+
+      const btnY=wy+34/z;
+      let btns=[];
+      if(isE){
+        btns=[
+          {id:'h150',label:'HOSE 150',col:'#c8b440',w:56},
+          {id:'h200',label:'HOSE 200',col:'#80b850',w:56},
+        ];
+        if(u.label==='2nd Engine'||u.label==='3rd Engine')
+          btns.push({id:'supply',label:'SUPPLY 1ST',col:'#4090cc',w:62});
+      } else {
+        btns=[{id:'aerial',label:'AERIAL',col:'#aaaaaa',w:46}];
+      }
+      btns.push({id:'flip',label:'⟺ FLIP',col:'#5588aa',w:42});
+      btns.push({id:'del',label:'✕ DEL',col:'#992222',w:32});
+
+      let bxOff=wx-66/z,bRow=btnY;
+      const maxRight=wx+66/z;
+      btns.forEach(b=>{
+        const bw=b.w/z,bh=16/z;
+        if(bxOff+bw>maxRight){bxOff=wx-66/z;bRow+=bh+2/z;}
+        b._x=bxOff;b._y=bRow;b._w=bw;b._h=bh;
+        rrect(bxOff,bRow,bw,bh,2/z);ctx.fillStyle='rgba(0,0,0,0.9)';ctx.fill();
+        ctx.strokeStyle=b.col;ctx.lineWidth=1/z;ctx.strokeRect(bxOff,bRow,bw,bh);
+        ctx.fillStyle=b.col;ctx.font=`bold ${7/z}px Rajdhani,sans-serif`;ctx.textAlign='center';
+        ctx.fillText(b.label,bxOff+bw/2,bRow+11/z);ctx.textAlign='left';
+        bxOff+=bw+2/z;
+      });
+      u._btns=btns;
+    }
+  });
+}
+
+function rrect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
+
+// ── ANIM LOOP ─────────────────────────────────────────────────────────────────
+let running=false;
+function startLoop(){if(running)return;running=true;(function loop(){drawAll();requestAnimationFrame(loop);})();}
+
+// ── ADDRESS ───────────────────────────────────────────────────────────────────
+function loadRandom(){const a=WA[Math.floor(Math.random()*WA.length)];document.getElementById('addr').value=a;loadTyped();}
+function loadTyped(){
+  const v=document.getElementById('addr').value.trim();if(!v)return;
+  addr=v;
+  document.getElementById('ca').textContent=v+', San Francisco, CA';
+  document.getElementById('iadr').textContent=v;
+  document.getElementById('ibox').textContent=Math.floor(Math.random()*9000+1000);
+  document.getElementById('ist').textContent='Active';document.getElementById('ist').style.color='var(--red)';
+  document.getElementById('sdot').classList.add('on');document.getElementById('stxt').textContent='Active Incident';
+  document.getElementById('addr-disp').textContent=v+', SF';
+  resize();units=[];hoses=[];aerials=[];fires=[];sel=null;genScene();updDep();updStatus();
+  log('Loaded: '+v+(isCornerAddr(v)?' [CORNER ADDRESS]':''));
+  log('Box #'+document.getElementById('ibox').textContent);
+}
+document.getElementById('addr').addEventListener('keydown',e=>{if(e.key==='Enter')loadTyped();});
+
+// ── DRAG FROM SHELF ───────────────────────────────────────────────────────────
+function unitDS(e){pUnitDrag.type=e.currentTarget.dataset.type;pUnitDrag.label=e.currentTarget.dataset.label;}
+function fireDS(e,ft){
+  pFireDrag=ft;
+  const g=document.getElementById('fire-ghost');
+  g.textContent=ft==='smoke'?'💨':ft==='both'?'🔥💨':'🔥';g.style.display='block';
+  e.dataTransfer.setDragImage(document.createElement('div'),0,0);
+}
+document.addEventListener('dragover',e=>{if(!pFireDrag)return;const g=document.getElementById('fire-ghost');g.style.left=e.clientX+'px';g.style.top=e.clientY+'px';});
+document.addEventListener('dragend',()=>{pFireDrag=null;document.getElementById('fire-ghost').style.display='none';});
+
+const swEl=document.getElementById('sw');
+swEl.addEventListener('dragover',e=>e.preventDefault());
+swEl.addEventListener('drop',e=>{
+  e.preventDefault();
+  if(!addr){alert('Load an address first.');pUnitDrag.type=null;pFireDrag=null;return;}
+  const r=cv.getBoundingClientRect();
+  const{x:wx,y:wy}=s2w(e.clientX-r.left,e.clientY-r.top-30);
+
+  if(pFireDrag){
+    // Place fire EXACTLY where dropped — no snapping
+    fires.push({id:++idC,wx,wy,ft:pFireDrag});
+    log('Fire placed: '+pFireDrag+' at ('+Math.round(wx)+','+Math.round(wy)+')');
+    updStatus();pFireDrag=null;document.getElementById('fire-ghost').style.display='none';return;
+  }
+
+  if(!pUnitDrag.type)return;
+  // Snap unit to street level (centre on road)
+  const snapY=STREET_MID_Y;
+  const id=++idC;
+  units.push({id,type:pUnitDrag.type,label:pUnitDrag.label,wx,wy:snapY,flip:false,_btns:[]});
+  sel=id;log(pUnitDrag.label+' deployed');
+  updDep();updStatus();pUnitDrag.type=null;pUnitDrag.label=null;
+});
+
+// ── HIT TESTS ─────────────────────────────────────────────────────────────────
+function hitUnit(wx,wy){
+  const z=cam.z;
+  for(let i=units.length-1;i>=0;i--){
+    const u=units[i];if(u.wx===undefined)continue;
+    if(Math.abs(wx-u.wx)<32/z&&Math.abs(wy-u.wy)<22/z)return u;
+  }
+  return null;
+}
+function hitBtn(u,wx,wy){
+  if(!u._btns)return null;
+  for(const b of u._btns)if(b._x!==undefined&&wx>=b._x&&wx<=b._x+b._w&&wy>=b._y&&wy<=b._y+b._h)return b.id;
+  return null;
+}
+function hitFireX(wx,wy){
+  const z=cam.z;
+  for(let i=fires.length-1;i>=0;i--){
+    const f=fires[i];if(Math.abs(wx-f.wx)<14/z&&Math.abs(wy-(f.wy-36/z))<12/z)return i;
+  }
+  return -1;
+}
+
+// ── CANVAS MOUSE ──────────────────────────────────────────────────────────────
+let mDown=false;
+cv.addEventListener('mousedown',e=>{
+  if(e.button!==0)return;
+  mDown=true;
+  const{x:wx,y:wy}=s2w(e.offsetX,e.offsetY);
+
+  // Selected unit buttons
+  if(sel!==null){
+    const u=units.find(u=>u.id===sel);
+    if(u){
+      const btn=hitBtn(u,wx,wy);
+      if(btn==='h150'){beginHose(u,150);return;}
+      if(btn==='h200'){beginHose(u,200);return;}
+      if(btn==='supply'){doSupply(u);return;}
+      if(btn==='aerial'){beginAerial(u);return;}
+      if(btn==='flip'){u.flip=!u.flip;updHoseAnchors();log(u.label+(u.flip?' →':'  ←'));return;}
+      if(btn==='del'){delUnit(u.id);return;}
+    }
+  }
+
+  // Fire ✕ remove
+  const fi=hitFireX(wx,wy);
+  if(fi>=0){fires.splice(fi,1);log('Fire removed');updStatus();return;}
+
+  // Unit body
+  const hu=hitUnit(wx,wy);
+  if(hu){
+    if(mode==='hose'&&hoseFrom){doFinishHose(wx,wy,hu.label);return;}
+    if(mode==='aerial'&&aerialFrom){doFinishAerial(wx,wy);return;}
+    sel=hu.id;dragging={uid:hu.id,owx:wx-hu.wx,owy:wy-hu.wy};return;
+  }
+
+  // Hydrant
+  if(showHyd){
+    const z=cam.z;
+    for(const h of hydrants){
+      if(Math.abs(wx-h.wx)<14/z&&Math.abs(wy-h.wy)<24/z){
+        if(mode==='hose'&&hoseFrom){doFinishHose(h.wx,h.wy,'Hydrant '+(h.id+1));return;}
+        log(`H${h.id+1}: 8" main · ~1800 GPM · 65 PSI`);return;
+      }
+    }
+  }
+
+  // Hose line click → delete
+  const z=cam.z;
+  for(let i=hoses.length-1;i>=0;i--){
+    if(nearLine(wx,wy,hoses[i].ax,hoses[i].ay,hoses[i].bx,hoses[i].by,8/z)){log('Hose removed');hoses.splice(i,1);updStatus();updConn();return;}
+  }
+  // Aerial click → delete
+  for(let i=aerials.length-1;i>=0;i--){
+    if(nearLine(wx,wy,aerials[i].ax,aerials[i].ay,aerials[i].bx,aerials[i].by,8/z)){log('Aerial retracted');aerials.splice(i,1);updStatus();updConn();return;}
+  }
+
+  // Mode empty-space clicks
+  if(mode==='hose'&&hoseFrom){doFinishHose(wx,wy,'Building');return;}
+  if(mode==='aerial'&&aerialFrom){doFinishAerial(wx,wy);return;}
+
+  // Pan + deselect
+  panActive=true;panSX=e.clientX;panSY=e.clientY;panCX=cam.x;panCY=cam.y;sel=null;
+});
+
+cv.addEventListener('mousemove',e=>{
+  mx=e.offsetX;my=e.offsetY;
+  const{x:wx,y:wy}=s2w(mx,my);
+  if(dragging){
+    const u=units.find(u=>u.id===dragging.uid);if(!u)return;
+    // Allow free X movement but snap Y to street
+    u.wx=wx-dragging.owx;
+    u.wy=STREET_MID_Y; // always on the road
+    updHoseAnchors();return;
+  }
+  if(panActive){cam.x=panCX-(e.clientX-panSX)/cam.z;cam.y=panCY-(e.clientY-panSY)/cam.z;}
+  const hu=hitUnit(wx,wy);cv.style.cursor=hu?'move':(mode!=='cmd'?'crosshair':'grab');
+});
+cv.addEventListener('mouseup',()=>{mDown=false;dragging=null;panActive=false;});
+cv.addEventListener('mouseleave',()=>{mDown=false;dragging=null;panActive=false;});
+cv.addEventListener('wheel',e=>{
+  e.preventDefault();const dz=e.deltaY<0?0.12:-0.12;
+  const{x:wx,y:wy}=s2w(e.offsetX,e.offsetY);
+  cam.z=Math.max(MIN_Z,Math.min(MAX_Z,cam.z+dz));
+  const after=s2w(e.offsetX,e.offsetY);cam.x+=wx-after.x;cam.y+=wy-after.y;updZL();
+},{passive:false});
+window.addEventListener('keydown',e=>{if(e.key==='Escape'){hoseFrom=null;aerialFrom=null;setMode('cmd');}});
+
+function nearLine(px,py,ax,ay,bx,by,t){
+  const dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;if(!l2)return Math.hypot(px-ax,py-ay)<t;
+  const tt=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/l2));
+  return Math.hypot(px-(ax+tt*dx),py-(ay+tt*dy))<t;
+}
+
+// ── HOSE ──────────────────────────────────────────────────────────────────────
+function beginHose(u,hlen){
+  const rp=rearWPos(u);
+  hoseFrom={uid:u.id,wx:rp.wx,wy:rp.wy,label:u.label,hlen};
+  setMode('hose');log(`${u.label}: ${hlen}' ready line from rear`);
+}
+function doFinishHose(bx,by,toLabel,opts={}){
+  const maxW=hoseFrom.hlen*HOSE_SCALE;
+  const dx=bx-hoseFrom.wx,dy=by-hoseFrom.wy,dist=Math.hypot(dx,dy);
+  const r2=dist>0?Math.min(maxW,dist)/dist:0;
+  const ex=hoseFrom.wx+dx*r2,ey=hoseFrom.wy+dy*r2;
+  if(dist>maxW)log(`⚠ Reach capped at ${hoseFrom.hlen}'`);
+  hoses.push({id:++idC,fuid:hoseFrom.uid,ax:hoseFrom.wx,ay:hoseFrom.wy,bx:ex,by:ey,
+    fromLabel:hoseFrom.label,toLabel,hlen:hoseFrom.hlen,
+    tuid:opts.tuid||null,supply:opts.supply||false});
+  log(`${hoseFrom.label} → ${toLabel}: ${hoseFrom.hlen}'`);
+  hoseFrom=null;setMode('cmd');updStatus();updConn();
+}
+function updHoseAnchors(){
+  hoses.forEach(h=>{
+    const u=units.find(u=>u.id===h.fuid);if(u){const rp=rearWPos(u);h.ax=rp.wx;h.ay=rp.wy;}
+    if(h.tuid){const tu=units.find(u=>u.id===h.tuid);if(tu){h.bx=tu.wx;h.by=tu.wy;}}
+  });
+  aerials.forEach(a=>{const u=units.find(u=>u.id===a.fuid);if(u){a.ax=u.wx;a.ay=u.wy;}});
+}
+
+// ── SUPPLY ────────────────────────────────────────────────────────────────────
+function doSupply(supplier){
+  const target=units.find(u=>u.label==='1st Engine');
+  if(!target||target.wx===undefined){log('⚠ 1st Engine not on scene');return;}
+  const is2nd=supplier.label==='2nd Engine';
+  const tY=is2nd?driverSideY(target):passSideY(target);
+  const rp=rearWPos(supplier);
+  [-5,5].forEach(dy=>{
+    hoseFrom={uid:supplier.id,wx:rp.wx,wy:rp.wy+dy,label:supplier.label,hlen:9999};
+    doFinishHose(target.wx,tY+dy,target.label+' ('+(is2nd?'driver':'pass.')+' side)',{tuid:target.id,supply:true});
+  });
+  log(`${supplier.label} → 1st Engine via ${is2nd?'driver':'passenger'} side`);
+}
+
+// ── AERIAL ────────────────────────────────────────────────────────────────────
+function beginAerial(u){aerialFrom={uid:u.id,wx:u.wx,wy:u.wy,label:u.label};setMode('aerial');log(u.label+': aerial — click building');}
+function doFinishAerial(bx,by){
+  aerials.push({id:++idC,fuid:aerialFrom.uid,ax:aerialFrom.wx,ay:aerialFrom.wy,bx,by,fromLabel:aerialFrom.label});
+  log(`${aerialFrom.label}: aerial raised`);aerialFrom=null;setMode('cmd');updStatus();updConn();
+}
+
+// ── MODE ──────────────────────────────────────────────────────────────────────
+function toggleMode(m){setMode(mode===m?'cmd':m);}
+function setMode(m){
+  mode=m;if(m!=='hose')hoseFrom=null;if(m!=='aerial')aerialFrom=null;
+  document.getElementById('ba').classList.toggle('on',m==='aerial');
+  const mb=document.getElementById('mb'),mi=document.getElementById('mind');
+  if(m==='hose'){mb.textContent=`HOSE (${hoseFrom?hoseFrom.hlen+"'":'?'}) — click hydrant, engine, or building · ESC cancel`;mb.style.display='block';mi.textContent='Hose';}
+  else if(m==='aerial'){mb.textContent='AERIAL — click any point on building · ESC cancel';mb.style.display='block';mi.textContent='Aerial';}
+  else{mb.style.display='none';mi.textContent='Mode: Command';}
+}
+
+// ── CONTROLS ──────────────────────────────────────────────────────────────────
+function toggleHydrants(){showHyd=!showHyd;document.getElementById('bhy').classList.toggle('on',showHyd);log('Hydrants '+(showHyd?'shown':'hidden'));}
+function delUnit(id){units=units.filter(u=>u.id!==id);hoses=hoses.filter(h=>h.fuid!==id&&h.tuid!==id);aerials=aerials.filter(a=>a.fuid!==id);sel=null;log('Unit removed');updDep();updStatus();updConn();}
+function delSelected(){if(sel!==null)delUnit(sel);}
+function clearHoses(){hoses=[];updStatus();updConn();log('Hoses cleared');}
+function clearAerials(){aerials=[];updStatus();updConn();log('Aerials cleared');}
+function clearFires(){fires=[];updStatus();log('Fire/smoke cleared');}
+function clearAll(){units=[];hoses=[];aerials=[];fires=[];sel=null;updDep();updStatus();updConn();log('Scene cleared');setMode('cmd');}
+
+// ── UI ────────────────────────────────────────────────────────────────────────
+function updDep(){
+  const el=document.getElementById('dep');
+  if(!units.length){el.innerHTML='None';return;}
+  el.innerHTML=units.map(u=>`<div style="display:flex;align-items:center;gap:4px;padding:2px 0;font-size:10px">${u.type==='engine'?'🚒':'🔺'} ${u.label} <span style="color:var(--muted);font-size:9px">${u.flip?'→':'←'}</span></div>`).join('');
+}
+function updHydList(){
+  const el=document.getElementById('hlist');
+  if(!hydrants.length){el.innerHTML='None';return;}
+  el.innerHTML=hydrants.map((h,i)=>`<div style="display:flex;align-items:center;gap:3px;padding:2px 0;border-bottom:1px solid #1c1c1c;font-size:10px"><span style="color:#CC3300">💧</span>H${i+1} — corner<span style="color:#22aa44;margin-left:auto">Avail</span></div>`).join('');
+}
+function updConn(){
+  const el=document.getElementById('conn');
+  const rows=[...hoses.map(h=>`<div style="font-size:9px;padding:1px 0">${h.supply?'🔵':'▬'} ${h.fromLabel}${h.supply?'':` (${h.hlen}')`} → ${h.toLabel}</div>`),
+              ...aerials.map(a=>`<div style="font-size:9px;padding:1px 0">⬆ ${a.fromLabel} aerial</div>`)];
+  el.innerHTML=rows.length?rows.join(''):'None';
+}
+function updStatus(){
+  document.getElementById('se').textContent=units.filter(u=>u.type==='engine').length;
+  document.getElementById('st').textContent=units.filter(u=>u.type==='truck').length;
+  document.getElementById('sh').textContent=hoses.length;
+  document.getElementById('sf').textContent=fires.length;
+  updDep();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+resize();startLoop();
+log('SFFD Western Addition Simulator ready');
+log('Load an address or click Random to begin');
+</script>
+</body>
+</html>
